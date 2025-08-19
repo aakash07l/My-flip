@@ -3,313 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlipToEarn - Farcaster Mini App</title>
-    <script type="importmap">
-    {
-        "imports": {
-            "wagmi": "https://esm.sh/wagmi@2.12.25",
-            "viem": "https://esm.sh/viem@2.21.19",
-            "react": "https://esm.sh/react@18.3.1",
-            "react-dom": "https://esm.sh/react-dom@18.3.1"
-        }
-    }
-    </script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: white;
-        }
-
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            background: linear-gradient(45deg, #fff, #e0e7ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .coin {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 30px;
-            background: linear-gradient(45deg, #ffd700, #ffed4e);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            color: #333;
-            cursor: pointer;
-            transition: transform 0.6s;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .coin.spinning {
-            animation: spin 1s ease-in-out;
-        }
-
-        @keyframes spin {
-            0% { transform: rotateY(0deg); }
-            50% { transform: rotateY(90deg) scale(1.1); }
-            100% { transform: rotateY(180deg); }
-        }
-
-        .btn {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-            border: none;
-            border-radius: 50px;
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-            width: 100%;
-            margin: 10px 0;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn.connect {
-            background: linear-gradient(45deg, #4facfe, #00f2fe);
-        }
-
-        .stats {
-            display: flex;
-            justify-content: space-between;
-            margin: 20px 0;
-        }
-
-        .stat {
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .leaderboard {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 25px;
-        }
-
-        .leaderboard h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .leader-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .leader-item:last-child {
-            border-bottom: none;
-        }
-
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            padding: 16px 20px;
-            color: white;
-            transform: translateX(400px);
-            transition: transform 0.3s;
-            z-index: 1000;
-        }
-
-        .toast.show {
-            transform: translateX(0);
-        }
-
-        .toast.success {
-            border-left: 4px solid #10b981;
-        }
-
-        .toast.error {
-            border-left: 4px solid #ef4444;
-        }
-
-        .wallet-info {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-family: monospace;
-        }
-    </style>
+    <title>Flip on Arbitrum - Farcaster Mini App</title>
+    <link rel="stylesheet" href="style.css">
+    <meta property="fc:frame" content="vNext">
+    <meta property="fc:frame:image" content="https://your-app-url.vercel.app/og-image.png">
+    <meta property="fc:frame:button:1" content="Play Flip Game">
+    <meta property="fc:frame:post_url" content="https://your-app-url.vercel.app/">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🪙 FlipToEarn</h1>
-            <p>Flip coins on Arbitrum for instant rewards!</p>
-        </div>
-        <div id="app"></div>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="glass-card">
+            <h1>🪙 Flip on Arbitrum</h1>
+            <p>Heads = Instant Reward | Tails = No Reward</p>
+            <div class="wallet-status" id="walletStatus">
+                <button id="connectWallet" class="connect-btn">Connect Wallet</button>
+            </div>
+        </header>
+
+        <!-- Main Game Area -->
+        <main class="game-section">
+            <div class="coin-container glass-card">
+                <div class="coin" id="coin">
+                    <div class="coin-face heads">H</div>
+                    <div class="coin-face tails">T</div>
+                </div>
+                <button id="flipButton" class="flip-btn">Flip Coin</button>
+                <div class="game-stats">
+                    <div class="stat">
+                        <span class="stat-label">Total Flips</span>
+                        <span class="stat-value" id="totalFlips">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Rewards Won</span>
+                        <span class="stat-value" id="rewardsWon">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Current Streak</span>
+                        <span class="stat-value" id="currentStreak">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboard -->
+            <div class="leaderboard glass-card">
+                <h2>🏆 Top 10 Flippers</h2>
+                <div class="leaderboard-list" id="leaderboard">
+                    <!-- Leaderboard entries will be populated by JS -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Toast Container -->
+        <div id="toastContainer" class="toast-container"></div>
     </div>
 
-    <script type="module">
-        import React, { useState, useEffect } from 'react';
-        import { createRoot } from 'react-dom/client';
-
-        // Mock leaderboard data
-        const mockLeaderboard = [
-            { address: '0x1234...5678', flips: 156 },
-            { address: '0xabcd...efgh', flips: 134 },
-            { address: '0x9876...4321', flips: 98 },
-            { address: '0xfedc...ba98', flips: 87 },
-            { address: '0x5555...6666', flips: 76 },
-            { address: '0x7777...8888', flips: 65 },
-            { address: '0x1111...2222', flips: 54 },
-            { address: '0x3333...4444', flips: 43 },
-            { address: '0x9999...aaaa', flips: 32 },
-            { address: '0xbbbb...cccc', flips: 21 }
-        ];
-
-        function showToast(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            
-            setTimeout(() => toast.classList.add('show'), 100);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => document.body.removeChild(toast), 300);
-            }, 3000);
-        }
-
-        function App() {
-            const [isConnected, setIsConnected] = useState(false);
-            const [address, setAddress] = useState('');
-            const [isFlipping, setIsFlipping] = useState(false);
-            const [result, setResult] = useState(null);
-            const [stats, setStats] = useState({ totalFlips: 0, wins: 0 });
-            const [leaderboard, setLeaderboard] = useState(mockLeaderboard);
-
-            const connectWallet = async () => {
-                showToast('Connecting wallet...', 'info');
-                await new Promise(r => setTimeout(r, 1500));
-                
-                const mockAddr = '0x' + Math.random().toString(16).substr(2, 40);
-                setAddress(mockAddr);
-                setIsConnected(true);
-                showToast('Wallet connected!', 'success');
-            };
-
-            const flipCoin = async () => {
-                if (!isConnected) {
-                    showToast('Connect wallet first!', 'error');
-                    return;
-                }
-
-                setIsFlipping(true);
-                setResult(null);
-
-                await new Promise(r => setTimeout(r, 2000));
-                
-                const isHeads = Math.random() < 0.5;
-                setResult(isHeads ? 'heads' : 'tails');
-                
-                const newStats = {
-                    totalFlips: stats.totalFlips + 1,
-                    wins: stats.wins + (isHeads ? 1 : 0)
-                };
-                setStats(newStats);
-
-                // Update leaderboard
-                const shortAddr = address.slice(0, 6) + '...' + address.slice(-4);
-                const updated = [...leaderboard];
-                const userIndex = updated.findIndex(u => u.address === shortAddr);
-                
-                if (userIndex >= 0) {
-                    updated[userIndex].flips = newStats.totalFlips;
-                } else {
-                    updated.push({ address: shortAddr, flips: newStats.totalFlips });
-                }
-                
-                updated.sort((a, b) => b.flips - a.flips);
-                setLeaderboard(updated.slice(0, 10));
-
-                showToast(
-                    isHeads ? '🎉 HEADS! You won!' : '😔 TAILS! Try again!', 
-                    isHeads ? 'success' : 'error'
-                );
-                
-                setIsFlipping(false);
-            };
-
-            return (
-                <>
-                    {!isConnected ? (
-                        <div className="card">
-                            <div className="coin">🪙</div>
-                            <h2>Connect to Start</h2>
-                            <p style={{ margin: '20px 0', opacity: 0.9 }}>
-                                Connect wallet to flip coins and earn rewards!
-                            </p>
-                            <button className="btn connect" onClick={connectWallet}>
-                                Connect Wallet
-                            </button>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="wallet-info">
-                                {address.slice(0, 6)}...{address.slice(-4)}
-                                <button 
-                                    onClick={() => setIsConnected(false)} 
-                                    style={{ 
-                                        background: 'none', 
-                                        border: '1px solid rgba(255,255,255,0.3)', 
+    <script type="module" src="app.js
+        border: '1px solid rgba(255,255,255,0.3)', 
                                         color: 'white', 
                                         padding: '5px 10px', 
                                         borderRadius: '15px', 
