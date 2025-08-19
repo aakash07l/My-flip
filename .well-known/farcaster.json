@@ -1,14 +1,14 @@
 {
   "accountAssociation": {
     "header": "eyJmaWQiOjIzNDYyMiwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweGMxMEEyNDVlNzhGQzI5RGI4ZWEzYjliZDJlYTM1ZUU2MmM3Y0M5OUEifQ",
-    "payload": "eyJkb21haW4iOiJjb2luLWZsaXAtZ2FtZS1yaG8udmVyY2VsLmFwcCJ9",
-    "signature": "MHhmM2IzOTJiYWFkNDk2MzMyNzYzNWFmOTFlZWMwNzg3OTAzZDJmNmU4OWUxODMwYjZkNmRjZTEzZjFlMzBjZWMzN2U2OWE0Y2E2YzZkMDNiYzVlY2RjNGUzNTBhNDM1NjJhMGEyZGFmYjhkOTg3M2IwOWQxYjZlNTM5OGIxOGNiMTFi"
+    "payload": "eyJkb21haW4iOiJteS1mbGlwLnZlcmNlbC5hcHAifQ",
+    "signature": "MHhjODAxZThiZjM3YWU1ZTUyMDQ0YWI5MWY5ZTE4OWRmYmJjODEzNDg1N2MxNzQyYTczODdjMzQ1OTk2NDVlMWVmNTZkOTAxZTc4MDMyYTNmN2FiNjBiZTc4MWRjNTI0MmFmYmE3ZDRiNDJlNzU4ZGE5ZDRlOTljYjk2MDQ4NDdlNDFj"
   },
   "frame": {
     "version": "1",
-    "name": "Coinflip Game",
+    "name": "Flip Arena",
     "iconUrl": "https://my-flip.vercel.app/icon.png",
-    "homeUrl": "https://my-flip.vercel.app/",
+    "homeUrl": "https://my-flip.vercel.app",
     "imageUrl": "https://my-flip.vercel.app/image.png",
     "buttonTitle": "Check this out",
     "splashImageUrl": "https://my-flip.vercel.app/splash.png",
