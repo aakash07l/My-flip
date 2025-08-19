@@ -7,12 +7,12 @@
   "frame": {
     "version": "1",
     "name": "Coinflip Game",
-    "iconUrl": "https://coin-flip-game-rho.vercel.app/icon.png",
+    "iconUrl": "https://my-flip.vercel.app/icon.png",
     "homeUrl": "https://my-flip.vercel.app/",
-    "imageUrl": "https://coin-flip-game-rho.vercel.app/image.png",
+    "imageUrl": "https://my-flip.vercel.app/image.png",
     "buttonTitle": "Check this out",
-    "splashImageUrl": "https://coin-flip-game-rho.vercel.app/splash.png",
+    "splashImageUrl": "https://my-flip.vercel.app/splash.png",
     "splashBackgroundColor": "#eeccff",
-    "webhookUrl": "https://coin-flip-game-rho.vercel.app/api/webhook"
+    "webhookUrl": "https://my-flip.vercel.app/api/webhook"
   }
 }
