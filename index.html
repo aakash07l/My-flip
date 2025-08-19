@@ -1,145 +1,204 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flip on Arbitrum - Farcaster Mini App</title>
-    <link rel="stylesheet" href="style.css">
-    <meta property="fc:frame" content="vNext">
-    <meta property="fc:frame:image" content="https://my-flip.vercel.app//image.png">
-    <meta property="fc:frame:button:1" content="Play Flip Game">
-    <meta property="fc:frame:post_url" content="https://my-flip.vercel.app/">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Farcaster Flip on Arbitrum</title>
+  <!-- Glassmorphism CSS Directly Here -->
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Inter', Arial, sans-serif;
+      margin: 0; padding: 0;
+      color: #fff;
+      overflow-x: hidden;
+    }
+    .glass {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(14px);
+      border-radius: 24px;
+      box-shadow: 0 4px 32px rgba(31,38,135,.3);
+      border: 1px solid rgba(255,255,255,0.22);
+      margin: 32px auto 0;
+      max-width: 380px;
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .coin {
+      width: 92px; height: 92px; margin: 20px auto;
+      border-radius: 50%;
+      perspective: 700px;
+      position: relative;
+      background: linear-gradient(135deg,#ffd700,#ffed4e);
+      color: #222; display: flex;
+      align-items:center; justify-content:center;
+      font-size: 2.9rem; font-weight: 700;
+      box-shadow: 0 2px 16px #0003;
+      transition: transform 1s cubic-bezier(.19,1,.22,1);
+    }
+    .coin.flip {
+      animation: flipIt 0.9s forwards;
+    }
+    @keyframes flipIt {
+      from { transform: rotateY(0deg); }
+      to   { transform: rotateY(1800deg);}
+    }
+    button, .connect-btn {
+      background: linear-gradient(135deg,#ff6b6b, #ff8e53);
+      border: none; border-radius: 24px; color: #fff;
+      font-size: 1.1rem; padding: 14px 36px; font-weight: 600;
+      margin: 24px 0 0 0; cursor: pointer; box-shadow: 0 3px 15px #ff6b6b22;
+    }
+    .leaderboard {
+      margin: 28px auto 0; padding: 20px 14px 7px 14px;
+    }
+    .leaderboard h3 { margin-bottom: 20px; }
+    .lb-row {
+      display: flex; justify-content: space-between;
+      border-bottom: 1px solid #fff4;
+      padding: 7px 0; font-size: 1.1rem;
+    }
+    .toast {
+      min-width: 280px;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(24px);
+      border-radius: 14px;
+      color: #fff; padding: 16px;
+      position: fixed; top: 22px; right: 22px; z-index: 12;
+      font-weight: 500;
+      box-shadow: 0 8px 32px 1px #0002;
+      border-left: 7px solid #4ecdc4;
+      animation: fadein 0.5s;
+    }
+    .toast.err { border-left: 7px solid #ff6b6b; }
+    @keyframes fadein { from{opacity:0;right:-100px;}to{opacity:1;right:22px;} }
+  </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header -->
-        <header class="glass-card">
-            <h1>🪙 Flip on Arbitrum</h1>
-            <p>Heads = Instant Reward | Tails = No Reward</p>
-            <div class="wallet-status" id="walletStatus">
-                <button id="connectWallet" class="connect-btn">Connect Wallet</button>
-            </div>
-        </header>
-
-        <!-- Main Game Area -->
-        <main class="game-section">
-            <div class="coin-container glass-card">
-                <div class="coin" id="coin">
-                    <div class="coin-face heads">H</div>
-                    <div class="coin-face tails">T</div>
-                </div>
-                <button id="flipButton" class="flip-btn">Flip Coin</button>
-                <div class="game-stats">
-                    <div class="stat">
-                        <span class="stat-label">Total Flips</span>
-                        <span class="stat-value" id="totalFlips">0</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">Rewards Won</span>
-                        <span class="stat-value" id="rewardsWon">0</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">Current Streak</span>
-                        <span class="stat-value" id="currentStreak">0</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Leaderboard -->
-            <div class="leaderboard glass-card">
-                <h2>🏆 Top 10 Flippers</h2>
-                <div class="leaderboard-list" id="leaderboard">
-                    <!-- Leaderboard entries will be populated by JS -->
-                </div>
-            </div>
-        </main>
-
-        <!-- Toast Container -->
-        <div id="toastContainer" class="toast-container"></div>
+  <div class="glass">
+    <h2>🪙 Flip on Arbitrum</h2>
+    <p>Heads = Reward | Tails = No Reward</p>
+    <div id="walletArea">
+      <button class="connect-btn" onclick="connectWallet()">Connect Wallet</button>
     </div>
-
-    <script type="module" src="app.js
-        border: '1px solid rgba(255,255,255,0.3)', 
-                                        color: 'white', 
-                                        padding: '5px 10px', 
-                                        borderRadius: '15px', 
-                                        marginLeft: '10px', 
-                                        cursor: 'pointer' 
-                                    }}
-                                >
-                                    Disconnect
-                                </button>
-                            </div>
-
-                            <div className="card">
-                                <div 
-                                    className={`coin ${isFlipping ? 'spinning' : ''}`}
-                                    onClick={flipCoin}
-                                >
-                                    {isFlipping ? '🌪️' : (result === 'heads' ? '👑' : result === 'tails' ? '❌' : '🪙')}
-                                </div>
-                                
-                                <div className="stats">
-                                    <div className="stat">
-                                        <div className="stat-value">{stats.totalFlips}</div>
-                                        <div>Total Flips</div>
-                                    </div>
-                                    <div className="stat">
-                                        <div className="stat-value">{stats.wins}</div>
-                                        <div>Wins</div>
-                                    </div>
-                                    <div className="stat">
-                                        <div className="stat-value">
-                                            {stats.totalFlips > 0 ? Math.round((stats.wins / stats.totalFlips) * 100) : 0}%
-                                        </div>
-                                        <div>Win Rate</div>
-                                    </div>
-                                </div>
-
-                                <button 
-                                    className="btn" 
-                                    onClick={flipCoin}
-                                    disabled={isFlipping}
-                                >
-                                    {isFlipping ? 'Flipping...' : 'Flip Coin'}
-                                </button>
-
-                                {result && (
-                                    <div style={{ fontSize: '1.1rem', fontWeight: '600', marginTop: '15px' }}>
-                                        {result === 'heads' ? '👑 HEADS - You Win!' : '❌ TAILS - Try Again!'}
-                                    </div>
-                                )}
-                            </div>
-                        </>
-                    )}
-
-                    <div className="leaderboard">
-                        <h2>🏆 Top 10 Flippers</h2>
-                        {leaderboard.map((item, i) => (
-                            <div key={item.address} className="leader-item">
-                                <span>#{i + 1} {item.address}</span>
-                                <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{item.flips}</span>
-                            </div>
-                        ))}
-                    </div>
-                </>
-            );
+    <div id="gameArea" style="display:none;">
+      <div class="coin" id="coin">?</div>
+      <button id="flipBtn" onclick="flipCoin()" disabled>Flip Coin</button>
+      <div style="margin-top:10px;">
+        <span>Total Flips: <b id="statFlips">0</b></span><br/>
+        <span>Rewards: <b id="statRewards">0</b></span>
+      </div>
+    </div>
+    <div class="leaderboard glass">
+      <h3>🏆 Leaderboard</h3>
+      <div id="lb"></div>
+    </div>
+  </div>
+  <div id="toast" style="display:none;"></div>
+  <!-- wagmi + ethers + Farcaster Miniapp ESM.sh imports -->
+  <script type="module">
+    import { createConfig, getAccount, connect, disconnect } from "https://esm.sh/@wagmi/core";
+    import { arbitrum } from "https://esm.sh/@wagmi/core/chains";
+    import { injected } from "https://esm.sh/@wagmi/connectors";
+    import { readContract, writeContract } from "https://esm.sh/@wagmi/core";
+    import { ethers } from "https://esm.sh/ethers";
+    // Import contract ABI/Address
+    let arbitrumGame = await fetch("arbitrumGame.json").then(r => r.json());
+    const config = createConfig({
+      chains: [arbitrum],
+      connectors: [injected()],
+      transports: { [arbitrum.id]: { url: arbitrum.rpcUrls.default.http[0] }}
+    });
+    // State
+    let stats = { flips: 0, rewards: 0, addr: "" };
+    let leaderboard = [];
+    // UI Refs
+    const walletArea = document.getElementById("walletArea");
+    const gameArea = document.getElementById("gameArea");
+    const coin = document.getElementById("coin");
+    const flipBtn = document.getElementById("flipBtn");
+    // Toast
+    function toast(msg, err) {
+      let t = document.getElementById("toast");
+      t.innerText = msg;
+      t.className = "toast"+(err?" err":"");
+      t.style.display = "block";
+      setTimeout(()=>{ t.style.display="none"; },3200);
+    }
+    // Wallet connect
+    window.connectWallet = async function(){
+      try {
+        let result = await connect(config, { connector: injected() });
+        stats.addr = result.accounts[0];
+        walletArea.innerHTML = `<b style="color:#4ecdc4;">${stats.addr.slice(0,6)}...${stats.addr.slice(-4)}</b>
+        <button onclick="disconnectWallet()" style="margin-left:8px;color:#eee">Disconnect</button>`;
+        gameArea.style.display = "";
+        flipBtn.disabled = false;
+        toast("Wallet Connected!",0);
+        fetchStats();
+      } catch(e){ toast("Wallet connect failed",1); }
+    };
+    window.disconnectWallet = async function() {
+      await disconnect(config);
+      walletArea.innerHTML =
+        `<button class="connect-btn" onclick="connectWallet()">Connect Wallet</button>`;
+      gameArea.style.display = "none";
+      toast("Disconnected",0);
+    }
+    // Fetch Stats (simulate by localStorage for now)
+    function fetchStats(){
+      let k = "arc-"+stats.addr;
+      let val = localStorage.getItem(k);
+      if(val) stats = { ...stats, ...JSON.parse(val) };
+      updateStats();
+      updateLeaderboard();
+    }
+    function updateStats(){
+      document.getElementById("statFlips").innerText = stats.flips;
+      document.getElementById("statRewards").innerText = stats.rewards;
+    }
+    // Flip Coin
+    window.flipCoin = async function() {
+      flipBtn.disabled = true;
+      coin.classList.add("flip");
+      setTimeout(()=>coin.classList.remove("flip"),900);
+      setTimeout(async ()=>{
+        // Fake randomness for demo, replace by contract call!
+        let heads = Math.random() < 0.5;
+        if(heads){
+          stats.rewards++; coin.innerText = "H";
+          toast("Heads! Reward sent 🎉",0);
+        }else{
+          coin.innerText = "T";
+          toast("Tails. Try again.",1);
         }
-
-        // Initialize app
-        const root = createRoot(document.getElementById('app'));
-        root.render(React.createElement(App));
-
-        // Farcaster frame support
-        window.addEventListener('message', (event) => {
-            if (event.data.type === 'farcaster-frame-ready') {
-                console.log('Farcaster frame ready');
-            }
-        });
-
-        if (window.parent !== window) {
-            window.parent.postMessage({ type: 'frame-ready' }, '*');
+        stats.flips++;
+        updateStats();
+        localStorage.setItem("arc-"+stats.addr,JSON.stringify(stats));
+        updateLeaderboard();
+        flipBtn.disabled = false;
+      },900);
+    }
+    // Populate leaderboard (from localstorage or fake array)
+    function updateLeaderboard(){
+      let arr=[];
+      for(let key in localStorage){
+        if(key.startsWith("arc-")){
+          let ob = JSON.parse(localStorage[key]);
+          arr.push({ addr: (ob.addr || key.slice(4)), flips: ob.flips, rewards: ob.rewards });
         }
-    </script>
+      }
+      arr.push({addr:stats.addr, flips:stats.flips, rewards:stats.rewards});
+      arr=arr.filter(x=>x.addr);
+      arr=Object.values(arr.reduce((acc,cur)=>{ acc[cur.addr]=cur; return acc; },{}));
+      arr.sort((a,b)=>b.flips-a.flips);
+      arr=arr.slice(0,10);
+      // UI
+      document.getElementById("lb").innerHTML =
+        arr.map((x,i)=>`<div class="lb-row"><div>#${i+1} ${(x.addr||"0x...").slice(0,6)}...${(x.addr||"0x...").slice(-4)}</div><div>${x.flips} / ${x.rewards}</div></div>`).join("");
+    }
+    // On page load
+    updateLeaderboard();
+  </script>
 </body>
 </html>
