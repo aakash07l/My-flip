@@ -8,13 +8,13 @@
   <!-- Farcaster Mini App Metadata -->
   <meta name="fc:miniapp" content='{
     "version":"1",
-    "imageUrl":"https://my-flip.vercel.app/image.png",
+    "imageUrl":"https://coin-flip-game-rho.vercel.app/image.png",
     "button":{
-      "title":"Arbitrum VS Base",
+      "title":"Flip Coin",
       "action":{
         "type":"launch_frame",
         "name":"Coinflip Game",
-        "url":"https://my-flip.vercel.app/",
+        "url":"https://coin-flip-game-rho.vercel.app",
         "splashImageUrl":"https://coin-flip-game-rho.vercel.app/splash.png",
         "splashBackgroundColor":"#111111"
       }
@@ -62,14 +62,14 @@
       <div id="coinInner" class="coin-inner">
         <!-- Heads = Arbitrum -->
         <div class="face"><img src="/arbitrum.png" alt="Heads / Arbitrum" /></div>
-        <!-- Tails = Base -->
-        <div class="face tail"><img src="/base.png" alt="Tails / Base" /></div>
+        <!-- Tails = No Reward -->
+        <div class="face tail"><!-- Tail side shows "No Reward" so image can remain blank or you can replace if you want --></div>
       </div>
     </div>
 
     <button id="flipBtn" class="btn">Flip The Coin</button>
     <div id="flipResult" class="center" style="margin-top:8px;font-weight:700;"></div>
-    <button id="claimBtn" class="btn hidden" disabled>Claim On Base</button>
+    <!-- Removed Claim Button completely -->
   </section>
 
   <!-- Leaderboard Tab -->
@@ -90,7 +90,7 @@
     import {
       createConfig, connect, switchChain, writeContract, readContract, watchContractEvent, getAccount, http
     } from 'https://esm.sh/@wagmi/core';
-    import { arbitrum, base } from 'https://esm.sh/@wagmi/core/chains';
+    import { arbitrum } from 'https://esm.sh/@wagmi/core/chains';
     import { farcasterMiniApp } from 'https://esm.sh/@farcaster/miniapp-wagmi-connector';
 
     sdk.actions.ready({ disableNativeGestures: true });
@@ -114,32 +114,36 @@
 
     const coinInner = document.getElementById('coinInner');
     const flipBtn = document.getElementById('flipBtn');
-    const claimBtn = document.getElementById('claimBtn');
     const flipResult = document.getElementById('flipResult');
     const toastEl = document.getElementById('toast');
 
-    function showToast(html, ms=3500){ toastEl.innerHTML=html; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'), ms); }
+    function showToast(html, ms=3500){
+      toastEl.innerHTML=html;
+      toastEl.classList.add('show');
+      setTimeout(()=>toastEl.classList.remove('show'), ms);
+    }
 
-    /* ---------- Load contract JSONs ---------- */
-    async function loadJson(path){ const r = await fetch(path); if(!r.ok) throw new Error(`Failed to load ${path}`); return r.json(); }
+    /* ---------- Load contract JSON ---------- */
+    async function loadJson(path){
+      const r = await fetch(path);
+      if(!r.ok) throw new Error(`Failed to load ${path}`);
+      return r.json();
+    }
     const arbJson = await loadJson('/arbitrumGame.json');   // { address, abi }
-    const baseJson = await loadJson('/baseClaim.json');     // { address, abi }
-
     const ARB_ADDR = arbJson.address, ARB_ABI = arbJson.abi;
-    const BASE_ADDR = baseJson.address, BASE_ABI = baseJson.abi;
 
     /* ---------- wagmi config ---------- */
     const config = createConfig({
-      chains: [arbitrum, base],
-      transports: { [arbitrum.id]: http(), [base.id]: http() }
+      chains: [arbitrum],
+      transports: { [arbitrum.id]: http() }
     });
     await connect(config, { connector: farcasterMiniApp() }).catch(()=>{});
 
-    // current user (to filter events for *their* flips)
+    // current user address
     let userAddress = getAccount(config)?.address;
 
     /* ---------- Coin rotation helpers ---------- */
-    let currentRot = 0; // track cumulative rotation in degrees
+    let currentRot = 0; // cumulative rotation degrees
 
     // light spin while waiting (keeps UI lively)
     let waitSpinTimer = null;
@@ -147,7 +151,7 @@
       stopWaitingSpin();
       waitSpinTimer = setInterval(() => {
         coinInner.style.transition = 'transform .6s linear';
-        currentRot += 180; // half-turn bumps
+        currentRot += 180; // half-turn increments
         coinInner.style.transform = `rotateY(${currentRot}deg)`;
       }, 650);
     }
@@ -158,9 +162,8 @@
 
     function spinToResult(isHeads) {
       stopWaitingSpin();
-      // final target: 0deg (heads / Arbitrum) or 180deg (tails / Base)
       const target = isHeads ? 0 : 180;
-      const spins = 3; // add full spins for flair
+      const spins = 3;
       const mod = ((currentRot % 360) + 360) % 360;
       const delta = ((target - mod) + 360) % 360;
       const finalRot = currentRot + spins * 360 + delta;
@@ -169,7 +172,7 @@
       currentRot = finalRot;
     }
 
-    /* ---------- Event listeners (Arbitrum) ---------- */
+    /* ---------- Event listeners (Arbitrum only) ---------- */
     // RewardPaid = Heads (Arbitrum win)
     watchContractEvent(config, {
       address: ARB_ADDR, abi: ARB_ABI, eventName: 'RewardPaid',
@@ -177,44 +180,22 @@
       onLogs: logs => {
         for (const log of logs) {
           const amt = log.args?.amount?.toString?.() ?? '';
-          spinToResult(true); // land on heads
+          spinToResult(true); // Heads
           showToast(`🎯 Won on Arbitrum — Reward: <b>${amt}</b>`);
           flipResult.textContent = 'Heads — reward sent on Arbitrum';
-          claimBtn.classList.add('hidden');
-          claimBtn.disabled = true;
         }
       }
     });
 
-    // BaseWin = Tails (Base claim available)
-    watchContractEvent(config, {
-      address: ARB_ADDR, abi: ARB_ABI, eventName: 'BaseWin',
-      args: userAddress ? { player: userAddress } : undefined,
-      onLogs: logs => {
-        for (const _ of logs) {
-          spinToResult(false); // land on tails
-          showToast('🪙 Tails — claim available on <b>Base</b>');
-          flipResult.textContent = 'Tails — claim on Base';
-          claimBtn.textContent = 'Claim on Base';
-          claimBtn.classList.remove('hidden');
-          claimBtn.disabled = false;
-        }
-      }
-    });
+    // Removed BaseWin event and claim button logic
 
     /* ---------- Actions ---------- */
-    // Flip (always Arbitrum)
     flipBtn.addEventListener('click', async () => {
-      // reset UI
       flipResult.textContent = 'Flipping…';
-      claimBtn.classList.add('hidden');
-      claimBtn.disabled = true;
 
-      // kick off a quick initial spin and then a gentle waiting spin until event lands
       coinInner.style.transition = 'transform .8s ease-in';
-      currentRot += 540; // 1.5 spins to start
+      currentRot += 540;
       coinInner.style.transform = `rotateY(${currentRot}deg)`;
-      // begin periodic bump while we wait for the event
       setTimeout(startWaitingSpin, 820);
 
       try {
@@ -224,28 +205,12 @@
         });
         showToast(`⏳ Flip sent. <a target="_blank" href="https://arbiscan.io/tx/${txHash}">view</a>`, 5000);
 
-        // safety timeout: if no event within 25s, stop spinner
+        // Timeout fallback if no event
         setTimeout(() => { if (waitSpinTimer) { stopWaitingSpin(); showToast('🤔 Still waiting for result…'); } }, 25000);
       } catch (e) {
         stopWaitingSpin();
         showToast('❌ Flip failed.');
         flipResult.textContent = 'Flip failed or rejected.';
-      }
-    });
-
-    // Claim (Base)
-    claimBtn.addEventListener('click', async () => {
-      try {
-        await switchChain(config, { chainId: base.id });
-        const txHash = await writeContract(config, {
-          address: BASE_ADDR, abi: BASE_ABI, functionName: 'claim', args: []
-        });
-        showToast(`🎉 Claimed on Base! <a target="_blank" href="https://basescan.org/tx/${txHash}">view</a>`, 4500);
-        claimBtn.classList.add('hidden');
-        claimBtn.disabled = true;
-        flipResult.textContent = 'Claimed on Base. Flip again!';
-      } catch (e) {
-        showToast('❌ Claim failed.');
       }
     });
 
