@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Farcaster Flip (Auto Wallet Connect)</title>
+  <title>Farcaster Flip (Auto Wallet Connect + Ready Fix)</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <!-- FRAME META (Farcaster compatible) -->
   <meta property="fc:frame" content="vNext" />
@@ -114,12 +114,11 @@
     <div id="toast" style="display:none;"></div>
   </div>
   <script type="module">
-    // ---- ESM.SH IMPORTS (wagmi+ethers+farcaster MINIAPP Connect) ----
     import { createConfig, getAccount, watchAccount } from "https://esm.sh/@wagmi/core";
     import { arbitrum } from "https://esm.sh/@wagmi/core/chains";
     import { farcasterMiniApp } from "https://esm.sh/@farcaster/miniapp-wagmi-connector";
     import { ethers } from "https://esm.sh/ethers@6.10.0";
-    // ---- CONFIG: force Farcaster auto-connect, remove connectBtn ----
+
     const config = createConfig({
       chains: [arbitrum],
       connectors: [farcasterMiniApp()],
@@ -128,7 +127,6 @@
 
     let stats = { flips: 0, rewards: 0, addr: "", connected: false };
 
-    // ---------------- UI: Toast -----------------
     function toast(msg, err) {
       let t = document.getElementById("toast");
       t.innerText = msg;
@@ -137,10 +135,9 @@
       setTimeout(()=>{ t.style.display="none"; },3000);
     }
 
-    // -------- Wagmi account auto-connect logic --------
     async function tryAutoConnect() {
       let { isConnected, address } = getAccount(config);
-      // Listen for wallet connection updates too!
+
       watchAccount(config, {
         onChange(account) {
           isConnected = account.isConnected;
@@ -148,10 +145,10 @@
           handleWallet(isConnected, address);
         }
       });
+
       handleWallet(isConnected, address);
     }
 
-    // -------------- Show/hide correct UI --------------
     function handleWallet(isConnected, address) {
       if(isConnected && address) {
         stats.addr = address;
@@ -161,6 +158,10 @@
           "🟢 "+address.slice(0,6)+"..."+address.slice(-4);
         document.getElementById("loading").style.display="none";
         fetchStats();
+        // Farcaster ready - tell warpcast frames app is ready
+        if (window.farcaster && window.farcaster.miniapp && typeof window.farcaster.miniapp.ready === "function") {
+          window.farcaster.miniapp.ready();
+        }
       } else {
         document.getElementById("mainUI").style.display = "none";
         document.getElementById("loading").innerText =
@@ -169,7 +170,6 @@
       }
     }
 
-    // ---- Game logic: local leaderboard/stats for demo only ----
     function fetchStats() {
       let key = "flip-"+stats.addr;
       let val = localStorage.getItem(key);
@@ -177,12 +177,12 @@
       updateStats();
       updateLeaderboard();
     }
+
     function updateStats() {
       document.getElementById("statFlips").innerText = stats.flips;
       document.getElementById("statRewards").innerText = stats.rewards;
     }
 
-    // -------------- Flip coin logic --------------
     document.getElementById("flipBtn").onclick = function() {
       const btn = this;
       btn.disabled = true;
@@ -210,7 +210,6 @@
       }, 800);
     };
 
-    // ----------- Leaderboard (top 10 local) -----------
     function updateLeaderboard() {
       let arr = [];
       for(let k in localStorage) {
@@ -219,7 +218,6 @@
           arr.push({ addr: o.addr, flips: o.flips||0, rewards: o.rewards||0 });
         }
       }
-      // Add self (in case not saved yet)
       if(stats.addr) arr.push({ addr: stats.addr, flips: stats.flips, rewards: stats.rewards });
       arr = arr.filter(x=>x.addr);
       arr = Object.values(arr.reduce((acc,cur)=>{acc[cur.addr]=cur;return acc;},{}));
@@ -231,7 +229,6 @@
         </div><div>${x.flips} / ${x.rewards}</div></div>`).join("");
     }
 
-    // ------------- Mount everything -------------
     tryAutoConnect();
   </script>
 </body>
