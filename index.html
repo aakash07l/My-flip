@@ -2,234 +2,276 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Farcaster Flip (Auto Wallet Connect + Ready Fix)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <!-- FRAME META (Farcaster compatible) -->
-  <meta property="fc:frame" content="vNext" />
-  <meta property="fc:frame:button:1" content="Flip Now" />
-  <meta property="fc:frame:image" content="arbitrum.png" />
-  <meta property="fc:frame:post_url" content="./" />
+  <meta name="viewport" content="width=390, initial-scale=1.0" />
+  <title>Coin Flip Game</title>
+
+  <!-- Farcaster Mini App Metadata -->
+  <meta name="fc:miniapp" content='{
+    "version":"1",
+    "imageUrl":"https://my-flip.vercel.app/image.png",
+    "button":{
+      "title":"Arbitrum VS Base",
+      "action":{
+        "type":"launch_frame",
+        "name":"Coinflip Game",
+        "url":"https://my-flip.vercel.app/",
+        "splashImageUrl":"https://coin-flip-game-rho.vercel.app/splash.png",
+        "splashBackgroundColor":"#111111"
+      }
+    }
+  }' />
+
   <style>
-    body {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      font-family: 'Inter', Arial, sans-serif;
-      color: #fff;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      align-items: center; justify-content: center;
-    }
-    .app {
-      width: 100%;
-      max-width: 410px;
-      margin: auto;
-    }
-    .glass {
-      background: rgba(255,255,255,0.08);
-      backdrop-filter: blur(14px);
-      border-radius: 28px;
-      padding: 2.2rem 1.7rem 1rem 1.7rem;
-      box-shadow: 0 4px 32px rgba(31,38,135,.4);
-      border: 1.2px solid rgba(255,255,255,0.25);
-      margin-bottom: 1.3rem;
-      text-align: center;
-    }
-    .coin {
-      margin: 24px auto 16px auto;
-      width: 92px; height: 92px;
-      border-radius: 50%;
-      background: linear-gradient(135deg,#ffd700,#ffed4e);
-      display: flex; align-items:center; justify-content:center;
-      font-size: 2.5rem; font-weight: 700; color: #222;
-      box-shadow: 0 2px 12px #0002;
-      transition: .8s cubic-bezier(.19,1,.22,1);
-    }
-    .coin.heads { background: linear-gradient(135deg,#ffd700,#ffed4e); color: #333;}
-    .coin.tails { background: linear-gradient(135deg,#bbb,#eee); color: #444;}
-    .flip-btn {
-      padding: 15px 36px;
-      border-radius: 22px;
-      border: none;
-      font-size: 1.2rem;
-      background: linear-gradient(135deg,#ff6b6b,#ff8e53);
-      color: #fff;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 12px;
-      margin-bottom: 8px;
-      box-shadow: 0 4px 15px #ff6b6b22;
-      transition: .2s;
-    }
-    .flip-btn[disabled] {
-      opacity: 0.6; cursor:not-allowed;
-    }
-    .leaderboard {
-      margin-top: 24px;
-      background: rgba(255,255,255,0.07);
-      border-radius: 18px;
-      padding: 1.2rem 1rem 0.5rem 1rem;
-      box-shadow: 0 2px 10px #0001;
-    }
-    .lb-row {
-      display: flex; justify-content: space-between;
-      align-items:center; border-bottom: 1px solid #fff3;
-      padding: 7px; font-size: 1.04rem;
-    }
-    .lb-row:last-child { border: none; }
-    .toast {
-      background: rgba(255,255,255,0.19);
-      backdrop-filter: blur(14px);
-      border-radius: 13px;
-      padding: 18px 26px;
-      color: #fff; font-weight: 500;
-      position: fixed; top: 28px; right: 16px; z-index:11;
-      min-width: 225px;
-      border-left: 7px solid #4ecdc4;
-      box-shadow: 0 8px 36px #0003;
-      animation: fadein .45s;
-      font-size: 1rem;
-    }
-    .toast.err { border-left: 7px solid #ff6b6b;}
-    @keyframes fadein {from{opacity:0;right:-50px;}to{opacity:1;right:16px;}}
-    @media(max-width:520px){.app{max-width:98vw;} .glass{padding-left:2vw;padding-right:2vw;}}
+    body{margin:0;background:#111;color:#fff;font-family:Inter,system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;max-width:390px;margin-inline:auto}
+    .tabbar{display:flex;gap:8px;width:100%;margin:12px}
+    .tabbar button{flex:1;padding:10px;background:#1a1a1a;border:1px solid #333;color:#aaa;border-radius:8px;font-weight:700;cursor:pointer}
+    .tabbar button.active{background:#ffd166;color:#000;border-color:#ffd166}
+    .hidden{display:none}
+
+    .coin{width:180px;height:180px;perspective:1000px;margin:16px auto}
+    .coin-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 1.2s cubic-bezier(.2,.6,.2,1)}
+    .face{position:absolute;inset:0;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 35% 25%,#2a2f42,#10131b 70%);border:2px solid rgba(255,255,255,.12);backface-visibility:hidden;overflow:hidden}
+    .face img{width:70%;height:70%;object-fit:contain}
+    .tail{transform:rotateY(180deg)}
+
+    .btn{padding:12px;background:#ffd166;color:#000;border:none;border-radius:10px;font-weight:800;width:90%;cursor:pointer;margin:8px auto}
+    .btn:disabled{background:#666;color:#ccc;cursor:not-allowed}
+
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;border-bottom:1px solid #222;font-size:14px}
+    thead{background:#161616}
+    .center{text-align:center}
+
+    /* Toast */
+    .toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.12);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:14px;padding:10px 14px;font-weight:600;max-width:360px;width:calc(100% - 24px);box-shadow:0 8px 30px rgba(0,0,0,.5);display:none;z-index:9999}
+    .toast a{color:#ffd166;text-decoration:underline}
+    .toast.show{display:block;animation:fadeIn .25s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
   </style>
 </head>
 <body>
-  <div class="app">
-    <div class="glass" id="mainUI" style="display:none;">
-      <h2>🪙 Flip on Arbitrum</h2>
-      <div id="walletInfo" style="padding-bottom:7px;font-size:1.1rem;"></div>
-      <div class="coin" id="coin">?</div>
-      <button class="flip-btn" id="flipBtn">Flip Coin</button>
-      <div style="margin:10px 0 4px 0;">
-        Flips: <b id="statFlips">0</b> | Rewards: <b id="statRewards">0</b>
-      </div>
-      <div class="leaderboard" id="lbWrap">
-        <div style="font-weight:600;margin-bottom:8px;">🏆 Leaderboard</div>
-        <div id="lb"></div>
+
+  <div class="tabbar">
+    <button id="tabFlipBtn" class="active">Flip</button>
+    <button id="tabLbBtn">Leaderboard</button>
+  </div>
+
+  <!-- Flip Tab -->
+  <section id="flipTab">
+    <div class="coin">
+      <div id="coinInner" class="coin-inner">
+        <!-- Heads = Arbitrum -->
+        <div class="face"><img src="/arbitrum.png" alt="Heads / Arbitrum" /></div>
+        <!-- Tails = Base -->
+        <div class="face tail"><img src="/base.png" alt="Tails / Base" /></div>
       </div>
     </div>
-    <div id="loading" style="padding:64px 0;text-align:center;">⌛ Loading...</div>
-    <div id="toast" style="display:none;"></div>
-  </div>
+
+    <button id="flipBtn" class="btn">Flip The Coin</button>
+    <div id="flipResult" class="center" style="margin-top:8px;font-weight:700;"></div>
+    <button id="claimBtn" class="btn hidden" disabled>Claim On Base</button>
+  </section>
+
+  <!-- Leaderboard Tab -->
+  <section id="leaderboardTab" class="hidden" style="width:100%;padding:0 12px;">
+    <h3>🏆 Top 10 Players (Total Flips)</h3>
+    <table>
+      <thead><tr><th>#</th><th>Address</th><th>Flips</th></tr></thead>
+      <tbody id="leaderboardBody"><tr><td colspan="3" class="center">Loading…</td></tr></tbody>
+    </table>
+  </section>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Farcaster + wagmi -->
   <script type="module">
-    import { createConfig, getAccount, watchAccount } from "https://esm.sh/@wagmi/core";
-    import { arbitrum } from "https://esm.sh/@wagmi/core/chains";
-    import { farcasterMiniApp } from "https://esm.sh/@farcaster/miniapp-wagmi-connector";
-    import { ethers } from "https://esm.sh/ethers@6.10.0";
+    import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk';
+    import {
+      createConfig, connect, switchChain, writeContract, readContract, watchContractEvent, getAccount, http
+    } from 'https://esm.sh/@wagmi/core';
+    import { arbitrum, base } from 'https://esm.sh/@wagmi/core/chains';
+    import { farcasterMiniApp } from 'https://esm.sh/@farcaster/miniapp-wagmi-connector';
 
-    const config = createConfig({
-      chains: [arbitrum],
-      connectors: [farcasterMiniApp()],
-      transports: { [arbitrum.id]: { url: arbitrum.rpcUrls.default.http[0] } }
-    });
+    sdk.actions.ready({ disableNativeGestures: true });
 
-    let stats = { flips: 0, rewards: 0, addr: "", connected: false };
-
-    function toast(msg, err) {
-      let t = document.getElementById("toast");
-      t.innerText = msg;
-      t.className = "toast"+(err?" err":"");
-      t.style.display = "block";
-      setTimeout(()=>{ t.style.display="none"; },3000);
-    }
-
-    async function tryAutoConnect() {
-      let { isConnected, address } = getAccount(config);
-
-      watchAccount(config, {
-        onChange(account) {
-          isConnected = account.isConnected;
-          address = account.address;
-          handleWallet(isConnected, address);
-        }
-      });
-
-      handleWallet(isConnected, address);
-    }
-
-    function handleWallet(isConnected, address) {
-      if(isConnected && address) {
-        stats.addr = address;
-        stats.connected = true;
-        document.getElementById("mainUI").style.display = "";
-        document.getElementById("walletInfo").innerText =
-          "🟢 "+address.slice(0,6)+"..."+address.slice(-4);
-        document.getElementById("loading").style.display="none";
-        fetchStats();
-        // Farcaster ready - tell warpcast frames app is ready
-        if (window.farcaster && window.farcaster.miniapp && typeof window.farcaster.miniapp.ready === "function") {
-          window.farcaster.miniapp.ready();
-        }
-      } else {
-        document.getElementById("mainUI").style.display = "none";
-        document.getElementById("loading").innerText =
-          "Farcaster preferred wallet required. Open in Warpcast or Farcaster compatible Frame.";
-        document.getElementById("loading").style.display = "";
-      }
-    }
-
-    function fetchStats() {
-      let key = "flip-"+stats.addr;
-      let val = localStorage.getItem(key);
-      if(val) Object.assign(stats, JSON.parse(val));
-      updateStats();
-      updateLeaderboard();
-    }
-
-    function updateStats() {
-      document.getElementById("statFlips").innerText = stats.flips;
-      document.getElementById("statRewards").innerText = stats.rewards;
-    }
-
-    document.getElementById("flipBtn").onclick = function() {
-      const btn = this;
-      btn.disabled = true;
-      let heads = Math.random() < 0.5;
-      let coin = document.getElementById("coin");
-      coin.style.transition = ".8s cubic-bezier(.19,1,.22,1)";
-      coin.style.transform = "rotateY(1800deg)";
-      setTimeout(()=>{
-        coin.style.transform = "";
-        if(heads) {
-          coin.className = "coin heads";
-          coin.innerText = "H";
-          stats.rewards++;
-          toast("Heads! Reward on Arbitrum 🎉");
-        } else {
-          coin.className = "coin tails";
-          coin.innerText = "T";
-          toast("Tails. No reward.",1);
-        }
-        stats.flips++;
-        updateStats();
-        localStorage.setItem("flip-"+stats.addr,JSON.stringify(stats));
-        updateLeaderboard();
-        btn.disabled = false;
-      }, 800);
+    /* ---------- UI refs ---------- */
+    const flipTab = document.getElementById('flipTab');
+    const leaderboardTab = document.getElementById('leaderboardTab');
+    document.getElementById('tabFlipBtn').onclick = () => {
+      flipTab.classList.remove('hidden');
+      leaderboardTab.classList.add('hidden');
+      document.getElementById('tabFlipBtn').classList.add('active');
+      document.getElementById('tabLbBtn').classList.remove('active');
+    };
+    document.getElementById('tabLbBtn').onclick = () => {
+      leaderboardTab.classList.remove('hidden');
+      flipTab.classList.add('hidden');
+      document.getElementById('tabLbBtn').classList.add('active');
+      document.getElementById('tabFlipBtn').classList.remove('active');
+      loadLeaderboard();
     };
 
-    function updateLeaderboard() {
-      let arr = [];
-      for(let k in localStorage) {
-        if(k.startsWith("flip-")) {
-          let o = JSON.parse(localStorage[k]);
-          arr.push({ addr: o.addr, flips: o.flips||0, rewards: o.rewards||0 });
-        }
-      }
-      if(stats.addr) arr.push({ addr: stats.addr, flips: stats.flips, rewards: stats.rewards });
-      arr = arr.filter(x=>x.addr);
-      arr = Object.values(arr.reduce((acc,cur)=>{acc[cur.addr]=cur;return acc;},{}));
-      arr.sort((a,b)=>b.flips-a.flips);
-      arr = arr.slice(0,10);
-      document.getElementById("lb").innerHTML =
-        arr.map((x,i)=>`<div class="lb-row"><div>
-        #${i+1} ${(x.addr||"0x...").slice(0,6)}...${(x.addr||"0x...").slice(-4)}
-        </div><div>${x.flips} / ${x.rewards}</div></div>`).join("");
+    const coinInner = document.getElementById('coinInner');
+    const flipBtn = document.getElementById('flipBtn');
+    const claimBtn = document.getElementById('claimBtn');
+    const flipResult = document.getElementById('flipResult');
+    const toastEl = document.getElementById('toast');
+
+    function showToast(html, ms=3500){ toastEl.innerHTML=html; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'), ms); }
+
+    /* ---------- Load contract JSONs ---------- */
+    async function loadJson(path){ const r = await fetch(path); if(!r.ok) throw new Error(`Failed to load ${path}`); return r.json(); }
+    const arbJson = await loadJson('/arbitrumGame.json');   // { address, abi }
+    const baseJson = await loadJson('/baseClaim.json');     // { address, abi }
+
+    const ARB_ADDR = arbJson.address, ARB_ABI = arbJson.abi;
+    const BASE_ADDR = baseJson.address, BASE_ABI = baseJson.abi;
+
+    /* ---------- wagmi config ---------- */
+    const config = createConfig({
+      chains: [arbitrum, base],
+      transports: { [arbitrum.id]: http(), [base.id]: http() }
+    });
+    await connect(config, { connector: farcasterMiniApp() }).catch(()=>{});
+
+    // current user (to filter events for *their* flips)
+    let userAddress = getAccount(config)?.address;
+
+    /* ---------- Coin rotation helpers ---------- */
+    let currentRot = 0; // track cumulative rotation in degrees
+
+    // light spin while waiting (keeps UI lively)
+    let waitSpinTimer = null;
+    function startWaitingSpin() {
+      stopWaitingSpin();
+      waitSpinTimer = setInterval(() => {
+        coinInner.style.transition = 'transform .6s linear';
+        currentRot += 180; // half-turn bumps
+        coinInner.style.transform = `rotateY(${currentRot}deg)`;
+      }, 650);
+    }
+    function stopWaitingSpin() {
+      if (waitSpinTimer) clearInterval(waitSpinTimer);
+      waitSpinTimer = null;
     }
 
-    tryAutoConnect();
+    function spinToResult(isHeads) {
+      stopWaitingSpin();
+      // final target: 0deg (heads / Arbitrum) or 180deg (tails / Base)
+      const target = isHeads ? 0 : 180;
+      const spins = 3; // add full spins for flair
+      const mod = ((currentRot % 360) + 360) % 360;
+      const delta = ((target - mod) + 360) % 360;
+      const finalRot = currentRot + spins * 360 + delta;
+      coinInner.style.transition = 'transform 1.2s cubic-bezier(.2,.7,.2,1)';
+      coinInner.style.transform = `rotateY(${finalRot}deg)`;
+      currentRot = finalRot;
+    }
+
+    /* ---------- Event listeners (Arbitrum) ---------- */
+    // RewardPaid = Heads (Arbitrum win)
+    watchContractEvent(config, {
+      address: ARB_ADDR, abi: ARB_ABI, eventName: 'RewardPaid',
+      args: userAddress ? { player: userAddress } : undefined,
+      onLogs: logs => {
+        for (const log of logs) {
+          const amt = log.args?.amount?.toString?.() ?? '';
+          spinToResult(true); // land on heads
+          showToast(`🎯 Won on Arbitrum — Reward: <b>${amt}</b>`);
+          flipResult.textContent = 'Heads — reward sent on Arbitrum';
+          claimBtn.classList.add('hidden');
+          claimBtn.disabled = true;
+        }
+      }
+    });
+
+    // BaseWin = Tails (Base claim available)
+    watchContractEvent(config, {
+      address: ARB_ADDR, abi: ARB_ABI, eventName: 'BaseWin',
+      args: userAddress ? { player: userAddress } : undefined,
+      onLogs: logs => {
+        for (const _ of logs) {
+          spinToResult(false); // land on tails
+          showToast('🪙 Tails — claim available on <b>Base</b>');
+          flipResult.textContent = 'Tails — claim on Base';
+          claimBtn.textContent = 'Claim on Base';
+          claimBtn.classList.remove('hidden');
+          claimBtn.disabled = false;
+        }
+      }
+    });
+
+    /* ---------- Actions ---------- */
+    // Flip (always Arbitrum)
+    flipBtn.addEventListener('click', async () => {
+      // reset UI
+      flipResult.textContent = 'Flipping…';
+      claimBtn.classList.add('hidden');
+      claimBtn.disabled = true;
+
+      // kick off a quick initial spin and then a gentle waiting spin until event lands
+      coinInner.style.transition = 'transform .8s ease-in';
+      currentRot += 540; // 1.5 spins to start
+      coinInner.style.transform = `rotateY(${currentRot}deg)`;
+      // begin periodic bump while we wait for the event
+      setTimeout(startWaitingSpin, 820);
+
+      try {
+        await switchChain(config, { chainId: arbitrum.id }).catch(()=>{});
+        const txHash = await writeContract(config, {
+          address: ARB_ADDR, abi: ARB_ABI, functionName: 'flip', args: []
+        });
+        showToast(`⏳ Flip sent. <a target="_blank" href="https://arbiscan.io/tx/${txHash}">view</a>`, 5000);
+
+        // safety timeout: if no event within 25s, stop spinner
+        setTimeout(() => { if (waitSpinTimer) { stopWaitingSpin(); showToast('🤔 Still waiting for result…'); } }, 25000);
+      } catch (e) {
+        stopWaitingSpin();
+        showToast('❌ Flip failed.');
+        flipResult.textContent = 'Flip failed or rejected.';
+      }
+    });
+
+    // Claim (Base)
+    claimBtn.addEventListener('click', async () => {
+      try {
+        await switchChain(config, { chainId: base.id });
+        const txHash = await writeContract(config, {
+          address: BASE_ADDR, abi: BASE_ABI, functionName: 'claim', args: []
+        });
+        showToast(`🎉 Claimed on Base! <a target="_blank" href="https://basescan.org/tx/${txHash}">view</a>`, 4500);
+        claimBtn.classList.add('hidden');
+        claimBtn.disabled = true;
+        flipResult.textContent = 'Claimed on Base. Flip again!';
+      } catch (e) {
+        showToast('❌ Claim failed.');
+      }
+    });
+
+    /* ---------- Leaderboard (Arbitrum) ---------- */
+    async function loadLeaderboard() {
+      const tbody = document.getElementById('leaderboardBody');
+      tbody.innerHTML = '<tr><td colspan="3" class="center">Loading…</td></tr>';
+      try {
+        const [players, counts] = await readContract(config, {
+          address: ARB_ADDR, abi: ARB_ABI, functionName: 'getTopPlayers', args: [10n]
+        });
+        tbody.innerHTML = '';
+        (players || []).forEach((addr, i) => {
+          const flips = counts?.[i]?.toString?.() ?? '0';
+          const short = addr ? `${addr.slice(0,6)}…${addr.slice(-4)}` : '—';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${i+1}</td><td>${short}</td><td>${flips}</td>`;
+          tbody.appendChild(tr);
+        });
+        if (!players || players.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" class="center">No flips yet.</td></tr>';
+        }
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="3" class="center">Failed to load leaderboard.</td></tr>';
+      }
+    }
   </script>
 </body>
 </html>
